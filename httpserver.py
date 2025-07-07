@@ -24,8 +24,15 @@ while True:
 
     # Get headers of the relevant resource
     header_dict = {}
-    headers, body = request.split('\r\n', 1)
-    for line in headers.split('\r\n')[1:]:  # Skip first line (request line)
+    body = ""
+    if '\r\n\r\n' in request:
+        headers, body = request.split('\r\n\r\n', 1)
+    else:
+        headers = request
+
+    header_lines = headers.split('\r\n')
+    request_line = header_lines[0]  # First line is the request line
+    for line in header_lines[1:]:  # Skip first line (request line)
         if ': ' in line:
             key, value = line.split(': ', 1)
             header_dict[key] = value
@@ -33,9 +40,9 @@ while True:
     print('header_dict', header_dict)
 
     # Parse the request line
-    request_type = headers[0].split()[0] # e.g. GET, POST, DELETE, PATCH, PUT
-    request_resource = headers[0].split()[1] # e.g. / or /example.html or /file.cpp
-    request_protocol = headers[0].split()[2] # e.g. HTTP/1.1
+    request_type = request_line.split()[0] # e.g. GET, POST, DELETE, PATCH, PUT
+    request_resource = request_line.split()[1] # e.g. / or /example.html or /file.cpp
+    request_protocol = request_line.split()[2] # e.g. HTTP/1.1
 
     if request_type == 'GET': # the client wants to GET some resource from the server
         if request_resource == '/':
@@ -53,7 +60,7 @@ while True:
         
         if request_resource == '/submit-form':
             # Handle form data, if content type is application/x-www-form-urlencoded
-            if header_dict.get('content-type', '').startswith('application/x-www-form-urlencoded'):
+            if header_dict.get('Content-Type', '').startswith('application/x-www-form-urlencoded'):
                 form_data = body.split('&')
                 form_dict = {}
                 for item in form_data:
@@ -68,12 +75,16 @@ while True:
 
         elif request_resource == '/submit-json':
             # Handle JSON data
-            if header_dict.get('content-type', '').startswith('application/json'):
+            if header_dict.get('Content-Type', '').startswith('application/json'):
                 # For simplicity, we assume the body is a simple string
                 # In a real application, you would parse JSON here
                 try:
                     json_data = json.loads(body)
                     print('JSON data:', json_data)
+                    # Download or process the JSON data as needed
+                    with open('data.json', 'w') as json_file:
+                        json.dump(json_data, json_file)
+
                     response = request_protocol + ' 200 OK\n\nPOST request processed successfully with JSON data'
                 except json.JSONDecodeError:
                     print('Invalid JSON data received')
