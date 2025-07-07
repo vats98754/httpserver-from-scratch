@@ -1,0 +1,41 @@
+<html>
+<head>
+    <title>JSON Example</title>
+</head>
+<body>
+    <h1>JSON POST Test</h1>
+    <p>This sends JSON data using JavaScript fetch.</p>
+    
+    <button onclick="sendJSON()">Send JSON Data</button>
+    <div id="result"></div>
+
+    <script>
+    function sendJSON() {
+        const data = {
+            username: "anvay",
+            password: "1234", 
+            email: "anvay@example.com",
+            preferences: {
+                theme: "dark",
+                notifications: true
+            }
+        };
+
+        fetch('/submit-json', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(result => {
+            document.getElementById('result').innerHTML = '<p>Response: ' + result + '</p>';
+        })
+        .catch(error => {
+            document.getElementById('result').innerHTML = '<p>Error: ' + error + '</p>';
+        });
+    }
+    </script>
+</body>
+</html>

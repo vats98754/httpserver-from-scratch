@@ -50,30 +50,39 @@ while True:
 
     elif request_type == 'POST': # the client wants to POST some data to the server
         print('POST request body:', body)
+        
+        if request_resource == '/submit-form':
+            # Handle form data, if content type is application/x-www-form-urlencoded
+            if header_dict.get('content-type', '').startswith('application/x-www-form-urlencoded'):
+                form_data = body.split('&')
+                form_dict = {}
+                for item in form_data:
+                    key, value = item.split('=', 1)
+                    value = value.replace('+', ' ')
+                    value = urllib.parse.unquote(value)
+                    form_dict[key] = value
+                print('Form data:', form_dict)
+                response = request_protocol + ' 200 OK\n\nPOST request processed successfully'
+            else:
+                response = request_protocol + ' 400 BAD REQUEST\n\nExpected form data'
 
-        # Handle form data, if content type is application/x-www-form-urlencoded
-        if header_dict.get('content-type', '').startswith('application/x-www-form-urlencoded'):
-            form_data = body.split('&')
-            form_dict = {}
-            for item in form_data:
-                key, value = item.split('=', 1)
-                value = value.replace('+', ' ')
-                value = urllib.parse.unquote(value)
-                form_dict[key] = value
-            print('Form data:', form_dict)
+        elif request_resource == '/submit-json':
+            # Handle JSON data
+            if header_dict.get('content-type', '').startswith('application/json'):
+                # For simplicity, we assume the body is a simple string
+                # In a real application, you would parse JSON here
+                try:
+                    json_data = json.loads(body)
+                    print('JSON data:', json_data)
+                    response = request_protocol + ' 200 OK\n\nPOST request processed successfully with JSON data'
+                except json.JSONDecodeError:
+                    print('Invalid JSON data received')
+                    response = request_protocol + ' 400 BAD REQUEST\n\nInvalid JSON'
+            else:
+                response = request_protocol + ' 400 BAD REQUEST\n\nExpected JSON data'
 
-        # Handle JSON data
-        elif header_dict.get('content-type', '').startswith('application/json'):
-            # For simplicity, we assume the body is a simple string
-            # In a real application, you would parse JSON here
-            try:
-                json_data = json.loads(body)
-                print('JSON data:', json_data)
-            except json.JSONDecodeError:
-                print('Invalid JSON data received')
-                response = request_protocol + ' 400 BAD REQUEST\n\nInvalid JSON data'
-
-        response = request_protocol + ' 200 OK\n\nPOST request processed successfully'
+        else:
+            response = request_protocol + ' 404 NOT FOUND\n\nEndpoint not found'
 
     # Send HTTP response
     print('response', response)
