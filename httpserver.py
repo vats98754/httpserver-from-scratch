@@ -9,17 +9,32 @@ SERVER_PORT = 8001
 
 # Create socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# Set socket options to reuse address
+# This allows the server to restart without waiting for the socket to be released
+# This is useful during development to avoid "Address already in use" errors
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+# Bind socket to host and port
+# This binds the server to all available interfaces (0.0.0.0)
 server_socket.bind((SERVER_HOST, SERVER_PORT))
+# Start listening for incoming connections
+# The argument 1 means the server can queue up to 1 connection request
 server_socket.listen(1)
 print('Listening on port %s ...' % SERVER_PORT)
 
 while True:
     # Wait for client connections
+    # The accept() method blocks until a client connects
+    # It returns a new socket object representing the connection and the address of the client
+        # - client_connection is the new socket object for the connection
+        # - client_address is the address of the client that connected
     client_connection, client_address = server_socket.accept()
 
-    # Get the client request
-    request = client_connection.recv(1024).decode()
+    # Get the client request data, with maximum buffer size of 1024 bytes
+    # If the request is larger than 1024 bytes, it will be truncated
+    request_data = client_connection.recv(1024)
+        
+    # Decode the request data from bytes to string
+    request = request_data.decode()
     print('request', request)
 
     # Get headers of the relevant resource
