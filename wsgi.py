@@ -102,7 +102,7 @@ class WSGIServer(object):
         # a 'write' callable. For simplicity's sake we'll ignore that detail for now.
         # return self.finish_response
 
-    def final_response(self, result):
+    def finish_response(self, result):
         try:
             status, response_headers = self.headers_set
             response = f'HTTP/1.1 {status}\r\n'
