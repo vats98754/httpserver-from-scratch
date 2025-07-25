@@ -1,9 +1,20 @@
+import re
+
 routes = {}
 
 def route(path, methods=['GET']):
     def decorator(func):
         for method in methods:
             routes[(method, path)] = func
+        return func
+    return decorator
+
+# for routes with URL parameters
+def route_with_params(pattern, methods=['GET']):
+    def decorator(func):
+        compiled_pattern = re.compile(pattern)
+        for method in methods:
+            routes[(method, pattern)] = (func, compiled_pattern)
         return func
     return decorator
 
@@ -46,3 +57,8 @@ def users_api(env, start_response):
     ]
     start_response(status, response_body)
     return [response_body]
+
+@route_with_params(r'/user/(\d+)')
+def user_detail(env, start_response, user_id):
+    # Handle /user/123
+    pass
